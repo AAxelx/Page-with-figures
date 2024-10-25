@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Геометричні Фігури</title>
+  <style>
+    body { text-align: center; font-family: Arial, sans-serif; }
+    #canvas { border: 1px solid black; background-color: #f0f0f0; cursor: crosshair; }
+    .info { margin: 10px; font-weight: bold; }
+    .buttons { margin: 15px; }
+  </style>
+</head>
+<body>
+  <h1>Геометричні Фігури</h1>
+  <div class="info">Клікніть на область, щоб вибрати точки A, B, C та D.</div>
+  <canvas id="canvas" width="600" height="400"></canvas>
+  <div class="buttons">
+    <button onclick="resetCanvas()">Reset</button>
+    <button onclick="showAbout()">About</button>
+  </div>
+  <div id="coordinates" class="info"></div>
+  <script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const points = [];
+    let selectedPoint = null;
+
+    canvas.addEventListener('click', (event) => {
+      if (points.length < 4) {
+        const x = event.offsetX;
+        const y = event.offsetY;
+        points.push({ x, y });
+        drawPoint(x, y);
+        if (points.length === 4) drawShapes();
+      }
+    });
+
+    canvas.addEventListener('mousedown', (event) => {
+      const { offsetX: x, offsetY: y } = event;
+      selectedPoint = points.find(p => Math.hypot(p.x - x, p.y - y) < 5);
+    });
+
+    canvas.addEventListener('mousemove', (event) => {
+      if (selectedPoint) {
+        selectedPoint.x = event.offsetX;
+        selectedPoint.y = event.offsetY;
+        redrawCanvas();
+        drawShapes();
+      }
+    });
+
+    canvas.addEventListener('mouseup', () => { selectedPoint = null; });
+
+    function drawPoint(x, y) {
+      ctx.beginPath();
+      ctx.arc(x, y, 5, 0, 2 * Math.PI);
+      ctx.fillStyle = 'black';
+      ctx.fill();
+      ctx.closePath();
+    }
+
+    function drawShapes() {
+      const [A, B, C, D] = points;
+      const radiusAB = Math.hypot(B.x - A.x, B.y - A.y);
+      const radiusCD = Math.hypot(D.x - C.x, D.y - C.y);
+
+      // Draw blue circle with center A and radius AB
+      ctx.beginPath();
+      ctx.arc(A.x, A.y, radiusAB, 0, 2 * Math.PI);
+      ctx.strokeStyle = 'blue';
+      ctx.stroke();
+      ctx.closePath();
+
+      // Draw yellow circle with center C and radius CD
+      ctx.beginPath();
+      ctx.arc(C.x, C.y, radiusCD, 0, 2 * Math.PI);
+      ctx.strokeStyle = 'yellow';
+      ctx.stroke();
+      ctx.closePath();
+
+      displayCoordinates(A, B, C, D, radiusAB, radiusCD);
+    }
+
+    function displayCoordinates(A, B, C, D, radiusAB, radiusCD) {
+      const coordsText = `A(${A.x}, ${A.y}), B(${B.x}, ${B.y}), C(${C.x}, ${C.y}), D(${D.x}, ${D.y})`;
+      document.getElementById('coordinates').innerText = coordsText;
+    }
+
+    function redrawCanvas() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      points.forEach(p => drawPoint(p.x, p.y));
+    }
+
+    function resetCanvas() {
+      points.length = 0;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      document.getElementById('coordinates').innerText = '';
+    }
+
+    function showAbout() {
+      alert("Геометричні фігури\n\nАвтор: Антон Кравченко\nЗавдання: Обирайте точки для побудови кіл, які оновлюються при зміні розташування точок.\nФункція reset очищає полотно.\n");
+    }
+  </script>
+</body>
+</html>
