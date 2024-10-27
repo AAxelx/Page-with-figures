@@ -79,11 +79,51 @@
       ctx.stroke();
       ctx.closePath();
 
-      displayCoordinates(A, B, C, D, radiusAB, radiusCD);
+      const intersections = calculateIntersections(A, radiusAB, C, radiusCD);
+      if (intersections) {
+        intersections.forEach(({ x, y }) => {
+          ctx.beginPath();
+          ctx.arc(x, y, 5, 0, 2 * Math.PI);
+          ctx.fillStyle = 'red';
+          ctx.fill();
+          ctx.closePath();
+        });
+      }
+
+      displayCoordinates(A, B, C, D, radiusAB, radiusCD, intersections);
     }
 
-    function displayCoordinates(A, B, C, D, radiusAB, radiusCD) {
-      const coordsText = `A(${A.x}, ${A.y}), B(${B.x}, ${B.y}), C(${C.x}, ${C.y}), D(${D.x}, ${D.y})`;
+    function calculateIntersections(A, radiusA, C, radiusC) {
+      const d = Math.hypot(C.x - A.x, C.y - A.y);
+
+      if (d > radiusA + radiusC || d < Math.abs(radiusA - radiusC) || (d === 0 && radiusA === radiusC)) {
+        return null; // No intersection
+      }
+
+      const a = (radiusA**2 - radiusC**2 + d**2) / (2 * d);
+      const h = Math.sqrt(radiusA**2 - a**2);
+
+      const x2 = A.x + (a * (C.x - A.x)) / d;
+      const y2 = A.y + (a * (C.y - A.y)) / d;
+
+      const x3 = x2 + (h * (C.y - A.y)) / d;
+      const y3 = y2 - (h * (C.x - A.x)) / d;
+
+      const x4 = x2 - (h * (C.y - A.y)) / d;
+      const y4 = y2 + (h * (C.x - A.x)) / d;
+
+      return [{ x: x3, y: y3 }, { x: x4, y: y4 }];
+    }
+
+    function displayCoordinates(A, B, C, D, radiusAB, radiusCD, intersections) {
+      let coordsText = `A(${A.x}, ${A.y}), B(${B.x}, ${B.y}), C(${C.x}, ${C.y}), D(${D.x}, ${D.y})`;
+      if (intersections) {
+        intersections.forEach((p, i) => {
+          coordsText += `\nПеретин ${i + 1}(${p.x.toFixed(2)}, ${p.y.toFixed(2)})`;
+        });
+      } else {
+        coordsText += `\nПеретину немає`;
+      }
       document.getElementById('coordinates').innerText = coordsText;
     }
 
